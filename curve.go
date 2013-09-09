@@ -1,6 +1,9 @@
 package paint
 
-import "math"
+import (
+	"image/color"
+	"math"
+)
 
 const PI = 3.1415926535897928264339
 
@@ -12,9 +15,9 @@ func round(x float64) int {
 	}
 }
 
-func (c *Canvas) Ellipse(l, t, r, b int) {
+func Ellipse(img Image, l, t, r, b int, clr color.Color) {
 	if l == r || t == b {
-		c.Line(l, t, r, b)
+		Line(img, l, t, r, b, clr)
 		return
 	}
 	if l > r {
@@ -41,23 +44,23 @@ func (c *Canvas) Ellipse(l, t, r, b int) {
 	for i := L; i <= R; i++ {
 		x := float64(i) - ox
 		y := math.Sqrt(1-(x*x)/(rx*rx)) * ry
-		c.Image.Set(i, round(oy+y), c.Fore)
-		c.Image.Set(i, round(oy-y), c.Fore)
+		img.Set(i, round(oy+y), clr)
+		img.Set(i, round(oy-y), clr)
 	}
 	for j := T; j <= B; j++ {
 		y := float64(j) - oy
 		x := math.Sqrt(1-(y*y)/(ry*ry)) * rx
-		c.Image.Set(round(ox+x), j, c.Fore)
-		c.Image.Set(round(ox-x), j, c.Fore)
+		img.Set(round(ox+x), j, clr)
+		img.Set(round(ox-x), j, clr)
 	}
 }
 
-func (c *Canvas) Arc(l, t, r, b int, frm, end float64) {
+func Arc(img Image, l, t, r, b int, frm, end float64, clr color.Color) {
 	for end < frm {
 		end += PI * 2
 	}
 	if end-frm >= PI*2 {
-		c.Ellipse(l, t, r, b)
+		Ellipse(img, l, t, r, b, clr)
 		return
 	}
 	if l > r {
@@ -72,7 +75,7 @@ func (c *Canvas) Arc(l, t, r, b int, frm, end float64) {
 	ry := float64(b-t) / 2
 	fx, fy := math.Cos(frm)*rx, math.Sin(frm)*ry
 	if frm == end {
-		c.Image.Set(round(ox+fx), round(oy-fy), c.Fore)
+		img.Set(round(ox+fx), round(oy-fy), clr)
 		return
 	}
 	tx, ty := math.Cos(end)*rx, math.Sin(end)*ry
@@ -91,28 +94,28 @@ func (c *Canvas) Arc(l, t, r, b int, frm, end float64) {
 		for j := T; j <= B; j++ {
 			y := float64(j) - oy
 			x := math.Sqrt(1-(y*y)/(ry*ry)) * rx
-			c.Image.Set(round(ox+x), j, c.Fore)
+			img.Set(round(ox+x), j, clr)
 		}
 	}
 	draw2 := func(L, R int) {
 		for i := L; i <= R; i++ {
 			x := float64(i) - ox
 			y := math.Sqrt(1-(x*x)/(rx*rx)) * ry
-			c.Image.Set(i, round(oy-y), c.Fore)
+			img.Set(i, round(oy-y), clr)
 		}
 	}
 	draw3 := func(T, B int) {
 		for j := T; j <= B; j++ {
 			y := float64(j) - oy
 			x := math.Sqrt(1-(y*y)/(ry*ry)) * rx
-			c.Image.Set(round(ox-x), j, c.Fore)
+			img.Set(round(ox-x), j, clr)
 		}
 	}
 	draw4 := func(L, R int) {
 		for i := L; i <= R; i++ {
 			x := float64(i) - ox
 			y := math.Sqrt(1-(x*x)/(rx*rx)) * ry
-			c.Image.Set(i, round(oy+y), c.Fore)
+			img.Set(i, round(oy+y), clr)
 		}
 	}
 	var p, q int

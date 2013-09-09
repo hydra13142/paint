@@ -1,12 +1,15 @@
 package main
 
-import "github.com/hydra13142/paint"
+import (
+	"github.com/hydra13142/paint"
+	"image"
+)
 
 func main() {
 	canvas := paint.NewCanvas(400, 400)
-	canvas.Rect(50, 50, 349, 349)
-	canvas.Line(50, 50, 349, 349)
-	canvas.Line(50, 349, 349, 50)
-	canvas.Ellipse(100, 100, 299, 299)
-	canvas.Save("circle.png")
+	paint.Rect(canvas, 50, 50, 349, 349, image.Black)
+	paint.Line(canvas, 50, 50, 349, 349, image.Black)
+	paint.Line(canvas, 50, 349, 349, 50, image.Black)
+	paint.Ellipse(canvas, 100, 100, 299, 299, image.Black)
+	paint.SaveCanvas("circle.png", canvas)
 }

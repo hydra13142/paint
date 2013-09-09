@@ -1,8 +1,10 @@
 package paint
 
-func (c *Canvas) Line(x1, y1, x2, y2 int) {
+import "image/color"
+
+func Line(img Image, x1, y1, x2, y2 int, clr color.Color) {
 	if x1 == x2 && y1 == y2 {
-		c.Image.Set(x1, y1, c.Fore)
+		img.Set(x1, y1, clr)
 		return
 	}
 	abs := func(x int) int {
@@ -21,7 +23,7 @@ func (c *Canvas) Line(x1, y1, x2, y2 int) {
 			i = -1
 		}
 		for ; x1 != x2; x1 += i {
-			c.Image.Set(x1, k*dy/dx+y1, c.Fore)
+			img.Set(x1, k*dy/dx+y1, clr)
 			k += i
 		}
 	} else {
@@ -32,15 +34,15 @@ func (c *Canvas) Line(x1, y1, x2, y2 int) {
 			j = -1
 		}
 		for ; y1 != y2; y1 += j {
-			c.Image.Set(k*dx/dy+x1, y1, c.Fore)
+			img.Set(k*dx/dy+x1, y1, clr)
 			k += j
 		}
 	}
 }
 
-func (c *Canvas) Rect(l, t, r, b int) {
+func Rect(img Image, l, t, r, b int, clr color.Color) {
 	if l == r || t == b {
-		c.Line(l, t, r, b)
+		Line(img, l, t, r, b, clr)
 		return
 	}
 	if l > r {
@@ -50,18 +52,18 @@ func (c *Canvas) Rect(l, t, r, b int) {
 		t, b = b, t
 	}
 	for x := l; x <= r; x++ {
-		c.Image.Set(x, t, c.Fore)
-		c.Image.Set(x, b, c.Fore)
+		img.Set(x, t, clr)
+		img.Set(x, b, clr)
 	}
 	for y := t; y <= b; y++ {
-		c.Image.Set(l, y, c.Fore)
-		c.Image.Set(r, y, c.Fore)
+		img.Set(l, y, clr)
+		img.Set(r, y, clr)
 	}
 }
 
-func (c *Canvas) Block(l, t, r, b int) {
+func Block(img Image, l, t, r, b int, clr color.Color) {
 	if l == r || t == b {
-		c.Line(l, t, r, b)
+		Line(img, l, t, r, b, clr)
 		return
 	}
 	if l > r {
@@ -72,15 +74,15 @@ func (c *Canvas) Block(l, t, r, b int) {
 	}
 	for x := l; x <= r; x++ {
 		for y := t; y <= b; y++ {
-			c.Image.Set(x, y, c.Fore)
+			img.Set(x, y, clr)
 		}
 	}
 }
 
-func (c *Canvas) Region(l, t, r, b int, f NetType, d int) {
+func Region(img Image, l, t, r, b int, f NetType, d int, clr color.Color) {
 	var x, y, k int
 	if l == r || t == b {
-		c.Line(l, t, r, b)
+		Line(img, l, t, r, b, clr)
 		return
 	}
 	if l > r {
@@ -90,21 +92,21 @@ func (c *Canvas) Region(l, t, r, b int, f NetType, d int) {
 		t, b = b, t
 	}
 	for x = l; x <= r; x++ {
-		c.Image.Set(x, t, c.Fore)
-		c.Image.Set(x, b, c.Fore)
+		img.Set(x, t, clr)
+		img.Set(x, b, clr)
 	}
 	for y = t; y <= b; y++ {
-		c.Image.Set(l, y, c.Fore)
-		c.Image.Set(r, y, c.Fore)
+		img.Set(l, y, clr)
+		img.Set(r, y, clr)
 	}
 	if f&Level != 0 {
 		for y = t + d; y < b; y += d {
-			c.Line(l, y, r, y)
+			Line(img, l, y, r, y, clr)
 		}
 	}
 	if f&Plumb != 0 {
 		for x = l + d; x < r; x += d {
-			c.Line(x, t, x, b)
+			Line(img, x, t, x, b, clr)
 		}
 	}
 	if f&Slant != 0 {
@@ -113,14 +115,14 @@ func (c *Canvas) Region(l, t, r, b int, f NetType, d int) {
 			if b-y < k {
 				k = b - y
 			}
-			c.Line(l, y, l+k, y+k)
+			Line(img, l, y, l+k, y+k, clr)
 		}
 		for x = l + d; x < r; x += d {
 			k = b - t
 			if r-x < k {
 				k = r - x
 			}
-			c.Line(x, t, x+k, t+k)
+			Line(img, x, t, x+k, t+k, clr)
 		}
 	}
 	if f&Twill != 0 {
@@ -129,14 +131,14 @@ func (c *Canvas) Region(l, t, r, b int, f NetType, d int) {
 			if y-t < k {
 				k = y - t
 			}
-			c.Line(l, y, l+k, y-k)
+			Line(img, l, y, l+k, y-k, clr)
 		}
 		for x = l + d; x < r; x += d {
 			k = b - t
 			if r-x < k {
 				k = r - x
 			}
-			c.Line(x, b, x+k, b-k)
+			Line(img, x, b, x+k, b-k, clr)
 		}
 	}
 }
