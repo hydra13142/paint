@@ -5,14 +5,39 @@ import (
 	"math"
 )
 
-const PI = 3.1415926535897928264339
-
-func round(x float64) int {
-	if x-math.Ceil(x) >= 0.5 {
-		return int(x) + 1
+func Round(x float64) int {
+	if x >= 0 {
+		if x-math.Floor(x) >= 0.5 {
+			return int(x) + 1
+		} else {
+			return int(x)
+		}
 	} else {
-		return int(x)
+		if x-math.Floor(x) >= 0.5 {
+			return int(x)
+		} else {
+			return int(x) - 1
+		}
 	}
+}
+
+func Angle(x, y float64) float64 {
+	if x > 0 {
+		if y < 0 {
+			return math.Atan(y/x) + math.Pi*2
+		}
+		return math.Atan(y / x)
+	}
+	if x < 0 {
+		return math.Atan(y/x) + math.Pi
+	}
+	if y > 0 {
+		return +math.Pi / 2
+	}
+	if y < 0 {
+		return -math.Pi / 2
+	}
+	return 0
 }
 
 func Ellipse(img Image, l, t, r, b int, clr color.Color) {
@@ -26,40 +51,47 @@ func Ellipse(img Image, l, t, r, b int, clr color.Color) {
 	if t > b {
 		t, b = b, t
 	}
-	ox := float64(l+r) / 2
-	oy := float64(t+b) / 2
+
 	rx := float64(r-l) / 2
 	ry := float64(b-t) / 2
-	md := math.Sqrt(rx*rx + ry*ry)
-	px := rx * rx / md
-	py := ry * ry / md
-	L, R := round(ox-px), round(ox+px)
-	T, B := round(oy-py), round(oy+py)
-	if (r-l)%2 == 0 {
-		rx += 0.01
+
+	w, h := (r-l)/2+1, (b-t)/2+1
+	u := make([]bool, h)
+
+	a, c := (l+r)/2, (l+r+1)/2
+	b, d := (t+b)/2, (t+b+1)/2
+
+	e, f := 0.5, 0.5
+	if a == c {
+		e = 0
 	}
-	if (b-t)%2 == 0 {
-		ry += 0.01
+	if b == d {
+		f = 0
 	}
-	for i := L; i <= R; i++ {
-		x := float64(i) - ox
-		y := math.Sqrt(1-(x*x)/(rx*rx)) * ry
-		img.Set(i, round(oy+y), clr)
-		img.Set(i, round(oy-y), clr)
+
+	for i := 0; i < w; i++ {
+		dx := float64(i) + e
+		j := Round(math.Sqrt(1-(dx*dx)/(rx*rx)) * ry)
+		img.Set(c+i, b-j, clr)
+		img.Set(a-i, b-j, clr)
+		img.Set(c+i, d+j, clr)
+		img.Set(a-i, d+j, clr)
+		u[j] = true
 	}
-	for j := T; j <= B; j++ {
-		y := float64(j) - oy
-		x := math.Sqrt(1-(y*y)/(ry*ry)) * rx
-		img.Set(round(ox+x), j, clr)
-		img.Set(round(ox-x), j, clr)
+	for j := 0; j < h; j++ {
+		if !u[j] {
+			dy := float64(j) + f
+			i := Round(math.Sqrt(1-(dy*dy)/(ry*ry)) * rx)
+			img.Set(c+i, b-j, clr)
+			img.Set(a-i, b-j, clr)
+			img.Set(c+i, d+j, clr)
+			img.Set(a-i, d+j, clr)
+		}
 	}
 }
 
 func Arc(img Image, l, t, r, b int, frm, end float64, clr color.Color) {
-	for end < frm {
-		end += PI * 2
-	}
-	if end-frm >= PI*2 {
+	if end-frm >= math.Pi*2 {
 		Ellipse(img, l, t, r, b, clr)
 		return
 	}
@@ -69,181 +101,81 @@ func Arc(img Image, l, t, r, b int, frm, end float64, clr color.Color) {
 	if t > b {
 		t, b = b, t
 	}
-	ox := float64(l+r) / 2
-	oy := float64(t+b) / 2
+	for frm < 0 {
+		frm += math.Pi * 2
+	}
+	for frm > math.Pi*2 {
+		frm -= math.Pi * 2
+	}
+	for end < frm {
+		end += math.Pi * 2
+	}
+
 	rx := float64(r-l) / 2
 	ry := float64(b-t) / 2
-	fx, fy := math.Cos(frm)*rx, math.Sin(frm)*ry
-	if frm == end {
-		img.Set(round(ox+fx), round(oy-fy), clr)
-		return
+
+	w, h := (r-l)/2+1, (b-t)/2+1
+	u := make([]bool, h)
+
+	a, c := (l+r)/2, (l+r+1)/2
+	b, d := (t+b)/2, (t+b+1)/2
+
+	e, f := 0.5, 0.5
+	if a == c {
+		e = 0
 	}
-	tx, ty := math.Cos(end)*rx, math.Sin(end)*ry
-	md := math.Sqrt(rx*rx + ry*ry)
-	px := rx * rx / md
-	py := ry * ry / md
-	L, R := round(ox-px), round(ox+px)
-	T, B := round(oy-py), round(oy+py)
-	if (r-l)%2 == 0 {
-		rx += 0.01
+	if b == d {
+		f = 0
 	}
-	if (b-t)%2 == 0 {
-		ry += 0.01
-	}
-	draw1 := func(T, B int) {
-		for j := T; j <= B; j++ {
-			y := float64(j) - oy
-			x := math.Sqrt(1-(y*y)/(ry*ry)) * rx
-			img.Set(round(ox+x), j, clr)
-		}
-	}
-	draw2 := func(L, R int) {
-		for i := L; i <= R; i++ {
-			x := float64(i) - ox
-			y := math.Sqrt(1-(x*x)/(rx*rx)) * ry
-			img.Set(i, round(oy-y), clr)
-		}
-	}
-	draw3 := func(T, B int) {
-		for j := T; j <= B; j++ {
-			y := float64(j) - oy
-			x := math.Sqrt(1-(y*y)/(ry*ry)) * rx
-			img.Set(round(ox-x), j, clr)
-		}
-	}
-	draw4 := func(L, R int) {
-		for i := L; i <= R; i++ {
-			x := float64(i) - ox
-			y := math.Sqrt(1-(x*x)/(rx*rx)) * ry
-			img.Set(i, round(oy+y), clr)
-		}
-	}
-	var p, q int
-	if fx >= -px && fx <= px {
-		if fy > 0 {
-			p = 2
-		} else {
-			p = 4
+	
+	var In func(float64) bool
+	if end <= 2*math.Pi {
+		In = func(ag float64) bool {
+			return ag >= frm && ag <= end
 		}
 	} else {
-		if fx > 0 {
-			p = 1
-		} else {
-			p = 3
+		mdi := end - 2*math.Pi
+		In = func(ag float64) bool {
+			return ag >= frm || ag <= mdi
 		}
 	}
-	if tx >= -px && tx <= px {
-		if ty > 0 {
-			q = 2
-		} else {
-			q = 4
+
+	for i := 0; i < w; i++ {
+		dx := float64(i) + e
+		dy := math.Sqrt(1-(dx*dx)/(rx*rx)) * ry
+		ag := Angle(dx, dy)
+		j := Round(dy)
+		if In(ag) {
+			img.Set(c+i, b-j, clr)
 		}
-	} else {
-		if tx > 0 {
-			q = 1
-		} else {
-			q = 3
+		if In(math.Pi - ag) {
+			img.Set(a-i, b-j, clr)
 		}
+		if In(math.Pi + ag) {
+			img.Set(a-i, d+j, clr)
+		}
+		if In(math.Pi*2 - ag) {
+			img.Set(c+i, d+j, clr)
+		}
+		u[j] = true
 	}
-	switch p {
-	case 1:
-		switch q {
-		case 1:
-			if fy < ty {
-				draw1(round(oy-ty), round(oy-fy))
-			} else {
-				draw1(T, round(oy-fy))
-				draw2(L, R)
-				draw3(T, B)
-				draw4(L, R)
-				draw1(round(oy-ty), B)
+	for j := 0; j < h; j++ {
+		if !u[j] {
+			dy := float64(j) + f
+			dx := math.Sqrt(1-(dy*dy)/(ry*ry)) * rx
+			ag := Angle(dx, dy)
+			i := Round(dx)
+			if In(ag) {
+				img.Set(c+i, b-j, clr)
 			}
-		case 2:
-			draw1(T, round(oy-fy))
-			draw2(round(ox+tx), R)
-		case 3:
-			draw1(T, round(oy-fy))
-			draw2(L, R)
-			draw3(T, round(oy-ty))
-		case 4:
-			draw1(T, round(oy-fy))
-			draw2(L, R)
-			draw3(T, B)
-			draw4(L, round(ox+tx))
-		}
-	case 2:
-		switch q {
-		case 1:
-			draw2(L, round(ox+fx))
-			draw3(T, B)
-			draw4(L, R)
-			draw1(round(oy-ty), B)
-		case 2:
-			if fx > tx {
-				draw2(round(ox+tx), round(ox+fx))
-			} else {
-				draw2(L, round(ox+fx))
-				draw3(T, B)
-				draw4(L, R)
-				draw1(T, B)
-				draw2(round(ox+tx), R)
+			if In(math.Pi - ag) {
+				img.Set(a-i, b-j, clr)
 			}
-		case 3:
-			draw2(L, round(ox+fx))
-			draw3(T, round(oy-ty))
-		case 4:
-			draw2(L, round(ox+fx))
-			draw3(T, B)
-			draw4(L, round(ox+tx))
-		}
-	case 3:
-		switch q {
-		case 1:
-			draw3(round(oy-fy), B)
-			draw4(L, R)
-			draw1(round(oy-ty), B)
-		case 2:
-			draw3(round(oy-fy), B)
-			draw4(L, R)
-			draw1(T, B)
-			draw2(round(ox+tx), R)
-		case 3:
-			if fy > ty {
-				draw3(round(oy-fy), round(oy-ty))
-			} else {
-				draw3(round(oy-fy), B)
-				draw4(L, R)
-				draw1(T, B)
-				draw2(L, R)
-				draw3(T, round(oy-ty))
+			if In(math.Pi + ag) {
+				img.Set(a-i, d+j, clr)
 			}
-		case 4:
-			draw3(round(oy-fy), B)
-			draw4(L, round(ox+tx))
-		}
-	case 4:
-		switch q {
-		case 1:
-			draw4(round(ox+fx), R)
-			draw1(round(oy-ty), B)
-		case 2:
-			draw4(round(ox+fx), R)
-			draw1(T, B)
-			draw2(round(ox+tx), R)
-		case 3:
-			draw4(round(ox+fx), R)
-			draw1(T, B)
-			draw2(L, R)
-			draw3(T, round(oy-ty))
-		case 4:
-			if fx < tx {
-				draw4(round(ox+fx), round(ox+tx))
-			} else {
-				draw4(round(ox+fx), R)
-				draw1(T, B)
-				draw2(L, R)
-				draw3(T, B)
-				draw4(L, round(ox+tx))
+			if In(math.Pi*2 - ag) {
+				img.Set(c+i, d+j, clr)
 			}
 		}
 	}
