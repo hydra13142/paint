@@ -26,6 +26,7 @@ func Line(img Image, x1, y1, x2, y2 int, clr color.Color) {
 			img.Set(x1, k*dy/dx+y1, clr)
 			k += i
 		}
+		img.Set(x2, y2, clr)
 	} else {
 		j, k := 0, 0
 		if dy > 0 {
@@ -37,6 +38,7 @@ func Line(img Image, x1, y1, x2, y2 int, clr color.Color) {
 			img.Set(k*dx/dy+x1, y1, clr)
 			k += j
 		}
+		img.Set(x2, y2, clr)
 	}
 }
 
