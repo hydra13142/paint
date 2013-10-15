@@ -146,16 +146,16 @@ func Arc(img Image, l, t, r, b int, frm, end float64, clr color.Color) {
 		ag := Angle(dx, dy)
 		j := Round(dy)
 		if In(ag) {
-			img.Set(c+i, b-j, clr)
+			img.Set(c+i, b+j, clr)
 		}
 		if In(math.Pi - ag) {
-			img.Set(a-i, b-j, clr)
+			img.Set(a-i, b+j, clr)
 		}
 		if In(math.Pi + ag) {
-			img.Set(a-i, d+j, clr)
+			img.Set(a-i, d-j, clr)
 		}
 		if In(math.Pi*2 - ag) {
-			img.Set(c+i, d+j, clr)
+			img.Set(c+i, d-j, clr)
 		}
 		u[j] = true
 	}
@@ -166,16 +166,16 @@ func Arc(img Image, l, t, r, b int, frm, end float64, clr color.Color) {
 			ag := Angle(dx, dy)
 			i := Round(dx)
 			if In(ag) {
-				img.Set(c+i, b-j, clr)
+				img.Set(c+i, b+j, clr)
 			}
 			if In(math.Pi - ag) {
-				img.Set(a-i, b-j, clr)
+				img.Set(a-i, b+j, clr)
 			}
 			if In(math.Pi + ag) {
-				img.Set(a-i, d+j, clr)
+				img.Set(a-i, d-j, clr)
 			}
 			if In(math.Pi*2 - ag) {
-				img.Set(c+i, d+j, clr)
+				img.Set(c+i, d-j, clr)
 			}
 		}
 	}
