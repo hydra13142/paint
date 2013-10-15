@@ -127,7 +127,7 @@ func Arc(img Image, l, t, r, b int, frm, end float64, clr color.Color) {
 	if b == d {
 		f = 0
 	}
-	
+
 	var In func(float64) bool
 	if end <= 2*math.Pi {
 		In = func(ag float64) bool {
