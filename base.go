@@ -1,11 +1,9 @@
 package paint
 
 import (
-	"errors"
 	"image"
+	"math"
 	"image/color"
-	"image/png"
-	"os"
 )
 
 type Image interface {
@@ -30,33 +28,36 @@ func RGBA(r, g, b, a uint8) color.RGBA {
 	return color.RGBA{r, g, b, a}
 }
 
-func NewCanvas(x, y int) *image.RGBA {
-	return image.NewRGBA(image.Rect(0, 0, x-1, y-1))
+func Max(x float64, r ...float64) float64 {
+	for _, o := range r {
+		if x < o {
+			x = o
+		}
+	}
+	return x
 }
 
-func LoadCanvas(name string) (Image, error) {
-	f, e := os.Open(name)
-	if e != nil {
-		return nil, e
+func Min(x float64, r ...float64) float64 {
+	for _, o := range r {
+		if x > o {
+			x = o
+		}
 	}
-	defer f.Close()
-
-	x, _, e := image.Decode(f)
-	if e != nil {
-		return nil, e
-	}
-	y, ok := x.(Image)
-	if !ok {
-		return nil, errors.New("Cannot load png file")
-	}
-	return y, nil
+	return x
 }
 
-func SaveCanvas(name string, img Image) error {
-	f, e := os.Create(name)
-	if e != nil {
-		return e
+func Round(x float64) int {
+	if x >= 0 {
+		if x-math.Floor(x) >= 0.5 {
+			return int(x) + 1
+		} else {
+			return int(x)
+		}
+	} else {
+		if x-math.Floor(x) >= 0.5 {
+			return int(x)
+		} else {
+			return int(x) - 1
+		}
 	}
-	defer f.Close()
-	return png.Encode(f, img)
 }

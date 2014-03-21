@@ -5,41 +5,6 @@ import (
 	"math"
 )
 
-func Round(x float64) int {
-	if x >= 0 {
-		if x-math.Floor(x) >= 0.5 {
-			return int(x) + 1
-		} else {
-			return int(x)
-		}
-	} else {
-		if x-math.Floor(x) >= 0.5 {
-			return int(x)
-		} else {
-			return int(x) - 1
-		}
-	}
-}
-
-func Angle(x, y float64) float64 {
-	if x > 0 {
-		if y < 0 {
-			return math.Atan(y/x) + math.Pi*2
-		}
-		return math.Atan(y / x)
-	}
-	if x < 0 {
-		return math.Atan(y/x) + math.Pi
-	}
-	if y > 0 {
-		return +math.Pi / 2
-	}
-	if y < 0 {
-		return -math.Pi / 2
-	}
-	return 0
-}
-
 func Ellipse(img Image, l, t, r, b int, clr color.Color) {
 	if l == r || t == b {
 		Line(img, l, t, r, b, clr)
@@ -143,7 +108,7 @@ func Arc(img Image, l, t, r, b int, frm, end float64, clr color.Color) {
 	for i := 0; i < w; i++ {
 		dx := float64(i) + e
 		dy := math.Sqrt(1-(dx*dx)/(rx*rx)) * ry
-		ag := Angle(dx, dy)
+		ag := math.Atan2(dy, dx)
 		j := Round(dy)
 		if In(ag) {
 			img.Set(c+i, b+j, clr)
@@ -163,7 +128,7 @@ func Arc(img Image, l, t, r, b int, frm, end float64, clr color.Color) {
 		if !u[j] {
 			dy := float64(j) + f
 			dx := math.Sqrt(1-(dy*dy)/(ry*ry)) * rx
-			ag := Angle(dx, dy)
+			ag := math.Atan2(dy, dx)
 			i := Round(dx)
 			if In(ag) {
 				img.Set(c+i, b+j, clr)
