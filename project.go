@@ -1,34 +1,46 @@
 package paint
 
 import (
+	"errors"
+	"github.com/hydra13142/geom"
 	"image"
 	"image/color"
+	"image/draw"
 	"math"
 )
 
-func Project(dst Image, src image.Image, prj func(x, y float64) (x1, y1 float64)) {
+// 将图像按照prj定义的映射函数进行映射，一般用于随意角度选择、哈哈镜等效果，速度慢
+// prj函数的映射必须是不改变平面关系的，即凸多边形的各点的映射（顺序不变）仍是凸多边形
+func Project(dst draw.Image, src image.Image, prj func(x, y float64) (x1, y1 float64)) error {
 	type medi struct{ r, g, b, a float64 }
-	rect := dst.Bounds()
-	dw := rect.Max.X - rect.Min.X
-	dh := rect.Max.Y - rect.Min.Y
+	sr := dst.Bounds()
+	dr := dst.Bounds()
+	dw := sr.Max.X - sr.Min.X
+	dh := sr.Max.Y - sr.Min.Y
+	if dw <= 0 || dh <= 0 {
+		return errors.New("source image is empty or noncanonical")
+	}
+	if dr.Min.X >= dr.Max.X || dr.Min.Y >= dr.Max.Y {
+		return errors.New("target image is empty or noncanonical")
+	}
 	c := make([][]medi, dw)
 	for i := 0; i < dw; i++ {
 		c[i] = make([]medi, dh)
 	}
-	rect = src.Bounds()
-	sw := rect.Max.X - rect.Min.X
-	sh := rect.Max.Y - rect.Min.Y
+	sr = src.Bounds()
+	sw := sr.Max.X - sr.Min.X
+	sh := sr.Max.Y - sr.Min.Y
 	for i := 0; i < sw; i++ {
 		for j := 0; j < sh; j++ {
-			r, g, b, a := src.At(i, j).RGBA()
+			r, g, b, a := src.At(i+sr.Min.X, j+sr.Min.Y).RGBA()
 			sx, sy := float64(i), float64(j)
 			x0, y0 := prj(sx, sy)
 			x1, y1 := prj(sx, sy+1)
 			x2, y2 := prj(sx+1, sy+1)
 			x3, y3 := prj(sx+1, sy)
-			cv := Convex([]Point{{x0, y0}, {x1, y1}, {x2, y2}, {x3, y3}})
-			lx, rx := math.Floor(Min(x0, x1, x2, x3)), math.Ceil(Max(x0, x1, x2, x3))
-			by, ty := math.Floor(Min(y0, y1, y2, y3)), math.Ceil(Max(y0, y1, y2, y3))
+			cv := geom.UnsafeConvex([]geom.Point{{x0, y0}, {x1, y1}, {x2, y2}, {x3, y3}})
+			lx, rx := math.Floor(min(x0, x1, x2, x3)), math.Ceil(max(x0, x1, x2, x3))
+			by, ty := math.Floor(min(y0, y1, y2, y3)), math.Ceil(max(y0, y1, y2, y3))
 			if lx >= float64(dw) || rx < 0 {
 				continue
 			}
@@ -49,13 +61,8 @@ func Project(dst Image, src image.Image, prj func(x, y float64) (x1, y1 float64)
 			}
 			for x := lx; x < rx; x += 1 {
 				for y := by; y < ty; y += 1 {
-					vc := Convex([]Point{
-						{x, y},
-						{x, y + 1},
-						{x + 1, y + 1},
-						{x + 1, y}})
-					ad := And(cv, vc)
-					k := ad.Area()
+					vc := geom.UnsafeConvex([]geom.Point{{x, y},{x, y + 1},{x + 1, y + 1},{x + 1, y}})
+					k := cv.And(vc).Area()
 					if k != 0 {
 						p := &c[int(x)][int(y)]
 						p.r += float64(r) * k
@@ -70,7 +77,8 @@ func Project(dst Image, src image.Image, prj func(x, y float64) (x1, y1 float64)
 	for i := 0; i < dw; i++ {
 		for j := 0; j < dh; j++ {
 			p := &c[i][j]
-			dst.Set(i, j, color.RGBA64{uint16(p.r), uint16(p.g), uint16(p.b), uint16(p.a)})
+			dst.Set(dr.Min.X+i, dr.Min.Y+j, color.RGBA64{uint16(p.r), uint16(p.g), uint16(p.b), uint16(p.a)})
 		}
 	}
+	return nil
 }

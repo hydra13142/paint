@@ -1,13 +1,11 @@
 package paint
 
-import (
-	"image/color"
-	"math"
-)
+import "math"
 
-func Ellipse(img Image, l, t, r, b int, clr color.Color) {
+// 绘制圆、椭圆
+func (img *Image)Ellipse(l, t, r, b int) {
 	if l == r || t == b {
-		Line(img, l, t, r, b, clr)
+		img.Line(l, t, r, b)
 		return
 	}
 	if l > r {
@@ -36,28 +34,29 @@ func Ellipse(img Image, l, t, r, b int, clr color.Color) {
 
 	for i := 0; i < w; i++ {
 		dx := float64(i) + e
-		j := Round(math.Sqrt(1-(dx*dx)/(rx*rx)) * ry)
-		img.Set(c+i, b-j, clr)
-		img.Set(a-i, b-j, clr)
-		img.Set(c+i, d+j, clr)
-		img.Set(a-i, d+j, clr)
+		j := round(math.Sqrt(1-(dx*dx)/(rx*rx)) * ry)
+		img.Pset(c+i, b-j)
+		img.Pset(a-i, b-j)
+		img.Pset(c+i, d+j)
+		img.Pset(a-i, d+j)
 		u[j] = true
 	}
 	for j := 0; j < h; j++ {
 		if !u[j] {
 			dy := float64(j) + f
-			i := Round(math.Sqrt(1-(dy*dy)/(ry*ry)) * rx)
-			img.Set(c+i, b-j, clr)
-			img.Set(a-i, b-j, clr)
-			img.Set(c+i, d+j, clr)
-			img.Set(a-i, d+j, clr)
+			i := round(math.Sqrt(1-(dy*dy)/(ry*ry)) * rx)
+			img.Pset(c+i, b-j)
+			img.Pset(a-i, b-j)
+			img.Pset(c+i, d+j)
+			img.Pset(a-i, d+j)
 		}
 	}
 }
 
-func Arc(img Image, l, t, r, b int, frm, end float64, clr color.Color) {
+// 绘制圆、椭圆的一部分，采用弧度表示弧线部分范围
+func (img *Image)Arc(l, t, r, b int, frm, end float64) {
 	if end-frm >= math.Pi*2 {
-		Ellipse(img, l, t, r, b, clr)
+		img.Ellipse(l, t, r, b)
 		return
 	}
 	if l > r {
@@ -109,18 +108,18 @@ func Arc(img Image, l, t, r, b int, frm, end float64, clr color.Color) {
 		dx := float64(i) + e
 		dy := math.Sqrt(1-(dx*dx)/(rx*rx)) * ry
 		ag := math.Atan2(dy, dx)
-		j := Round(dy)
+		j := round(dy)
 		if In(ag) {
-			img.Set(c+i, b+j, clr)
+			img.Pset(c+i, b+j)
 		}
 		if In(math.Pi - ag) {
-			img.Set(a-i, b+j, clr)
+			img.Pset(a-i, b+j)
 		}
 		if In(math.Pi + ag) {
-			img.Set(a-i, d-j, clr)
+			img.Pset(a-i, d-j)
 		}
 		if In(math.Pi*2 - ag) {
-			img.Set(c+i, d-j, clr)
+			img.Pset(c+i, d-j)
 		}
 		u[j] = true
 	}
@@ -129,18 +128,18 @@ func Arc(img Image, l, t, r, b int, frm, end float64, clr color.Color) {
 			dy := float64(j) + f
 			dx := math.Sqrt(1-(dy*dy)/(ry*ry)) * rx
 			ag := math.Atan2(dy, dx)
-			i := Round(dx)
+			i := round(dx)
 			if In(ag) {
-				img.Set(c+i, b+j, clr)
+				img.Pset(c+i, b+j)
 			}
 			if In(math.Pi - ag) {
-				img.Set(a-i, b+j, clr)
+				img.Pset(a-i, b+j)
 			}
 			if In(math.Pi + ag) {
-				img.Set(a-i, d-j, clr)
+				img.Pset(a-i, d-j)
 			}
 			if In(math.Pi*2 - ag) {
-				img.Set(c+i, d-j, clr)
+				img.Pset(c+i, d-j)
 			}
 		}
 	}

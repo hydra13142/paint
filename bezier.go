@@ -3,11 +3,16 @@ package paint
 import (
 	"errors"
 	"image"
-	"image/color"
 	"math"
 )
 
-func BezierSlice(img Image, num int, clr color.Color, spt []image.Point) error {
+// 绘制贝塞尔曲线，根据提供的校准点绘制，num为采样点个数
+func (img *Image) Bezier(num int, spt ...image.Point) error {
+	return img.BezierSlice(num, spt)
+}
+
+// 类似BezierSlice但接受校准点的切片
+func (img *Image) BezierSlice(num int, spt []image.Point) error {
 	l := len(spt)
 	if l < 2 {
 		return errors.New("need at least two points")
@@ -23,14 +28,10 @@ func BezierSlice(img Image, num int, clr color.Color, spt []image.Point) error {
 			k = k * (l - j - 1) / (j + 1)
 			v = v * t / (1 - t)
 		}
-		a, b := Round(x), Round(y)
-		Line(img, c.X, c.Y, a, b, clr)
+		a, b := round(x), round(y)
+		img.Line(c.X, c.Y, a, b)
 		c.X, c.Y = a, b
 	}
-	Line(img, c.X, c.Y, spt[l-1].X, spt[l-1].Y, clr)
+	img.Line(c.X, c.Y, spt[l-1].X, spt[l-1].Y)
 	return nil
-}
-
-func Bezier(img Image, num int, clr color.Color, spt ...image.Point) error {
-	return BezierSlice(img, num, clr, spt)
 }

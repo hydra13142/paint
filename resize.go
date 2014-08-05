@@ -3,18 +3,20 @@ package paint
 import (
 	"errors"
 	"image"
+	"image/draw"
 	"image/color"
 	"math"
 )
 
-func Resize(dst Image, src image.Image) error {
+// 用于对图像的大小进行调整
+func Resize(dst draw.Image, src image.Image) error {
 	sr := src.Bounds()
 	dr := dst.Bounds()
-	if sr.Min.X == sr.Max.X || sr.Min.Y == sr.Max.Y {
-		return errors.New("source image is no-size")
+	if sr.Min.X >= sr.Max.X || sr.Min.Y >= sr.Max.Y {
+		return errors.New("source image is empty or noncanonical")
 	}
-	if dr.Min.X == dr.Max.X || dr.Min.Y == dr.Max.Y {
-		return errors.New("target image is no-size")
+	if dr.Min.X >= dr.Max.X || dr.Min.Y >= dr.Max.Y {
+		return errors.New("target image is empty or noncanonical")
 	}
 	kx := float64(sr.Max.X-sr.Min.X) / float64(dr.Max.X-dr.Min.X)
 	ky := float64(sr.Max.Y-sr.Min.Y) / float64(dr.Max.Y-dr.Min.Y)

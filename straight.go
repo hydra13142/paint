@@ -1,10 +1,14 @@
 package paint
 
-import "image/color"
+// 绘制点
+func (img *Image) Pset(x, y int) {
+	img.Set(x, y, img.FR)
+}
 
-func Line(img Image, x1, y1, x2, y2 int, clr color.Color) {
+// 绘制直线
+func (img *Image) Line(x1, y1, x2, y2 int) {
 	if x1 == x2 && y1 == y2 {
-		img.Set(x1, y1, clr)
+		img.Pset(x1, y1)
 		return
 	}
 	abs := func(x int) int {
@@ -23,10 +27,10 @@ func Line(img Image, x1, y1, x2, y2 int, clr color.Color) {
 			i = -1
 		}
 		for ; x1 != x2; x1 += i {
-			img.Set(x1, k*dy/dx+y1, clr)
+			img.Pset(x1, k*dy/dx+y1)
 			k += i
 		}
-		img.Set(x2, y2, clr)
+		img.Pset(x2, y2)
 	} else {
 		j, k := 0, 0
 		if dy > 0 {
@@ -35,16 +39,17 @@ func Line(img Image, x1, y1, x2, y2 int, clr color.Color) {
 			j = -1
 		}
 		for ; y1 != y2; y1 += j {
-			img.Set(k*dx/dy+x1, y1, clr)
+			img.Pset(k*dx/dy+x1, y1)
 			k += j
 		}
-		img.Set(x2, y2, clr)
+		img.Pset(x2, y2)
 	}
 }
 
-func Rect(img Image, l, t, r, b int, clr color.Color) {
+// 绘制矩形
+func (img *Image) Rect(l, t, r, b int) {
 	if l == r || t == b {
-		Line(img, l, t, r, b, clr)
+		img.Line(l, t, r, b)
 		return
 	}
 	if l > r {
@@ -54,18 +59,19 @@ func Rect(img Image, l, t, r, b int, clr color.Color) {
 		t, b = b, t
 	}
 	for x := l; x <= r; x++ {
-		img.Set(x, t, clr)
-		img.Set(x, b, clr)
+		img.Pset(x, t)
+		img.Pset(x, b)
 	}
 	for y := t; y <= b; y++ {
-		img.Set(l, y, clr)
-		img.Set(r, y, clr)
+		img.Pset(l, y)
+		img.Pset(r, y)
 	}
 }
 
-func Block(img Image, l, t, r, b int, clr color.Color) {
+// 绘制矩形并填充
+func (img *Image) Bar(l, t, r, b int) {
 	if l == r || t == b {
-		Line(img, l, t, r, b, clr)
+		img.Line(l, t, r, b)
 		return
 	}
 	if l > r {
@@ -74,17 +80,32 @@ func Block(img Image, l, t, r, b int, clr color.Color) {
 	if t > b {
 		t, b = b, t
 	}
-	for x := l; x <= r; x++ {
-		for y := t; y <= b; y++ {
-			img.Set(x, y, clr)
+	img.Line(l, t, r, t)
+	img.Line(l, b, r, b)
+	img.Line(l, t, l, b)
+	img.Line(r, t, r, b)
+	for x := l + 1; x < r; x++ {
+		for y := t + 1; y < b; y++ {
+			img.Set(x, y, img.BG)
 		}
 	}
 }
 
-func Region(img Image, l, t, r, b int, f NetType, d int, clr color.Color) {
+// 网格的类型
+type NetType int
+
+const (
+	Level NetType = 1 << iota // 水平
+	Plumb                     // 竖直
+	Slant                     // 斜杠
+	Twill                     // 反斜杠
+)
+
+// 绘制矩形并在内部绘制网格
+func (img *Image) Block(l, t, r, b int, f NetType, d int) {
 	var x, y, k int
 	if l == r || t == b {
-		Line(img, l, t, r, b, clr)
+		img.Line(l, t, r, b)
 		return
 	}
 	if l > r {
@@ -94,21 +115,21 @@ func Region(img Image, l, t, r, b int, f NetType, d int, clr color.Color) {
 		t, b = b, t
 	}
 	for x = l; x <= r; x++ {
-		img.Set(x, t, clr)
-		img.Set(x, b, clr)
+		img.Pset(x, t)
+		img.Pset(x, b)
 	}
 	for y = t; y <= b; y++ {
-		img.Set(l, y, clr)
-		img.Set(r, y, clr)
+		img.Pset(l, y)
+		img.Pset(r, y)
 	}
 	if f&Level != 0 {
 		for y = t + d; y < b; y += d {
-			Line(img, l, y, r, y, clr)
+			img.Line(l, y, r, y)
 		}
 	}
 	if f&Plumb != 0 {
 		for x = l + d; x < r; x += d {
-			Line(img, x, t, x, b, clr)
+			img.Line(x, t, x, b)
 		}
 	}
 	if f&Slant != 0 {
@@ -117,14 +138,14 @@ func Region(img Image, l, t, r, b int, f NetType, d int, clr color.Color) {
 			if b-y < k {
 				k = b - y
 			}
-			Line(img, l, y, l+k, y+k, clr)
+			img.Line(l, y, l+k, y+k)
 		}
 		for x = l + d; x < r; x += d {
 			k = b - t
 			if r-x < k {
 				k = r - x
 			}
-			Line(img, x, t, x+k, t+k, clr)
+			img.Line(x, t, x+k, t+k)
 		}
 	}
 	if f&Twill != 0 {
@@ -133,14 +154,14 @@ func Region(img Image, l, t, r, b int, f NetType, d int, clr color.Color) {
 			if y-t < k {
 				k = y - t
 			}
-			Line(img, l, y, l+k, y-k, clr)
+			img.Line(l, y, l+k, y-k)
 		}
 		for x = l + d; x < r; x += d {
 			k = b - t
 			if r-x < k {
 				k = r - x
 			}
-			Line(img, x, b, x+k, b-k, clr)
+			img.Line(x, b, x+k, b-k)
 		}
 	}
 }
