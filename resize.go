@@ -3,8 +3,8 @@ package paint
 import (
 	"errors"
 	"image"
-	"image/draw"
 	"image/color"
+	"image/draw"
 	"math"
 )
 

@@ -61,7 +61,7 @@ func Project(dst draw.Image, src image.Image, prj func(x, y float64) (x1, y1 flo
 			}
 			for x := lx; x < rx; x += 1 {
 				for y := by; y < ty; y += 1 {
-					vc := geom.UnsafeConvex([]geom.Point{{x, y},{x, y + 1},{x + 1, y + 1},{x + 1, y}})
+					vc := geom.UnsafeConvex([]geom.Point{{x, y}, {x, y + 1}, {x + 1, y + 1}, {x + 1, y}})
 					k := cv.And(vc).Area()
 					if k != 0 {
 						p := &c[int(x)][int(y)]

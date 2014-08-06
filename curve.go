@@ -3,7 +3,7 @@ package paint
 import "math"
 
 // 绘制圆、椭圆
-func (img *Image)Ellipse(l, t, r, b int) {
+func (img *Image) Ellipse(l, t, r, b int) {
 	if l == r || t == b {
 		img.Line(l, t, r, b)
 		return
@@ -54,7 +54,7 @@ func (img *Image)Ellipse(l, t, r, b int) {
 }
 
 // 绘制圆、椭圆的一部分，采用弧度表示弧线部分范围
-func (img *Image)Arc(l, t, r, b int, frm, end float64) {
+func (img *Image) Arc(l, t, r, b int, frm, end float64) {
 	if end-frm >= math.Pi*2 {
 		img.Ellipse(l, t, r, b)
 		return
