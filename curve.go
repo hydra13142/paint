@@ -3,28 +3,37 @@ package paint
 import "math"
 
 // 绘制圆、椭圆
-func (img *Image) Ellipse(l, t, r, b int) {
-	if l == r || t == b {
-		img.Line(l, t, r, b)
+func (img *Image) Ellipse(smlX, smlY, bigX, bigY int) {
+	if smlX == bigX || smlY == bigY {
+		img.Line(smlX, smlY, bigX, bigY)
 		return
 	}
-	if l > r {
-		l, r = r, l
+	if smlX > bigX {
+		smlX, bigX = bigX, smlX
 	}
-	if t > b {
-		t, b = b, t
+	if smlY > bigY {
+		smlY, bigY = bigY, smlY
 	}
 
-	rx := float64(r-l) / 2
-	ry := float64(b-t) / 2
+	rx := float64(bigX-smlX) / 2
+	ry := float64(bigY-smlY) / 2
 
-	w, h := (r-l)/2+1, (b-t)/2+1
+	w, h := (bigX-smlX)/2+1, (bigY-smlY)/2+1
 	u := make([]bool, h)
 
-	a, c := (l+r)/2, (l+r+1)/2
-	b, d := (t+b)/2, (t+b+1)/2
-
-	e, f := 0.5, 0.5
+	var a, b, c, d int
+	var e, f float64
+	if i := smlX + bigX; i > 0 {
+		a, c = i/2, (i+1)/2
+	} else {
+		a, c = (i-1)/2, i/2
+	}
+	if j := smlY + bigY; j > 0 {
+		b, d = j/2, (j+1)/2
+	} else {
+		b, d = (j-1)/2, j/2
+	}
+	e, f = 0.5, 0.5
 	if a == c {
 		e = 0
 	}
@@ -54,16 +63,16 @@ func (img *Image) Ellipse(l, t, r, b int) {
 }
 
 // 绘制圆、椭圆的一部分，采用弧度表示弧线部分范围
-func (img *Image) Arc(l, t, r, b int, frm, end float64) {
+func (img *Image) Arc(smlX, smlY, bigX, bigY int, frm, end float64) {
 	if end-frm >= math.Pi*2 {
-		img.Ellipse(l, t, r, b)
+		img.Ellipse(smlX, smlY, bigX, bigY)
 		return
 	}
-	if l > r {
-		l, r = r, l
+	if smlX > bigX {
+		smlX, bigX = bigX, smlX
 	}
-	if t > b {
-		t, b = b, t
+	if smlY > bigY {
+		smlY, bigY = bigY, smlY
 	}
 	for frm < 0 {
 		frm += math.Pi * 2
@@ -75,16 +84,25 @@ func (img *Image) Arc(l, t, r, b int, frm, end float64) {
 		end += math.Pi * 2
 	}
 
-	rx := float64(r-l) / 2
-	ry := float64(b-t) / 2
+	rx := float64(bigX-smlX) / 2
+	ry := float64(bigY-smlY) / 2
 
-	w, h := (r-l)/2+1, (b-t)/2+1
+	w, h := (bigX-smlX)/2+1, (bigY-smlY)/2+1
 	u := make([]bool, h)
 
-	a, c := (l+r)/2, (l+r+1)/2
-	b, d := (t+b)/2, (t+b+1)/2
-
-	e, f := 0.5, 0.5
+	var a, b, c, d int
+	var e, f float64
+	if i := smlX + bigX; i > 0 {
+		a, c = i/2, (i+1)/2
+	} else {
+		a, c = (i-1)/2, i/2
+	}
+	if j := smlY + bigY; j > 0 {
+		b, d = j/2, (j+1)/2
+	} else {
+		b, d = (j-1)/2, j/2
+	}
+	e, f = 0.5, 0.5
 	if a == c {
 		e = 0
 	}

@@ -47,45 +47,45 @@ func (img *Image) Line(x1, y1, x2, y2 int) {
 }
 
 // 绘制矩形
-func (img *Image) Rect(l, t, r, b int) {
-	if l == r || t == b {
-		img.Line(l, t, r, b)
+func (img *Image) Rect(smlX, smlY, bigX, bigY int) {
+	if smlX == bigX || smlY == bigY {
+		img.Line(smlX, smlY, bigX, bigY)
 		return
 	}
-	if l > r {
-		l, r = r, l
+	if smlX > bigX {
+		smlX, bigX = bigX, smlX
 	}
-	if t > b {
-		t, b = b, t
+	if smlY > bigY {
+		smlY, bigY = bigY, smlY
 	}
-	for x := l; x <= r; x++ {
-		img.Pset(x, t)
-		img.Pset(x, b)
+	for x := smlX; x <= bigX; x++ {
+		img.Pset(x, smlY)
+		img.Pset(x, bigY)
 	}
-	for y := t; y <= b; y++ {
-		img.Pset(l, y)
-		img.Pset(r, y)
+	for y := smlY; y <= bigY; y++ {
+		img.Pset(smlX, y)
+		img.Pset(bigX, y)
 	}
 }
 
 // 绘制矩形并填充
-func (img *Image) Bar(l, t, r, b int) {
-	if l == r || t == b {
-		img.Line(l, t, r, b)
+func (img *Image) Bar(smlX, smlY, bigX, bigY int) {
+	if smlX == bigX || smlY == bigY {
+		img.Line(smlX, smlY, bigX, bigY)
 		return
 	}
-	if l > r {
-		l, r = r, l
+	if smlX > bigX {
+		smlX, bigX = bigX, smlX
 	}
-	if t > b {
-		t, b = b, t
+	if smlY > bigY {
+		smlY, bigY = bigY, smlY
 	}
-	img.Line(l, t, r, t)
-	img.Line(l, b, r, b)
-	img.Line(l, t, l, b)
-	img.Line(r, t, r, b)
-	for x := l + 1; x < r; x++ {
-		for y := t + 1; y < b; y++ {
+	img.Line(smlX, smlY, bigX, smlY)
+	img.Line(smlX, smlY, smlX, bigY)
+	img.Line(smlX, bigY, bigX, bigY)
+	img.Line(bigX, smlY, bigX, bigY)
+	for x := smlX + 1; x < bigX; x++ {
+		for y := smlY + 1; y < bigY; y++ {
 			img.Set(x, y, img.BG)
 		}
 	}
@@ -102,66 +102,66 @@ const (
 )
 
 // 绘制矩形并在内部绘制网格
-func (img *Image) Block(l, t, r, b int, f NetType, d int) {
+func (img *Image) Block(smlX, smlY, bigX, bigY int, f NetType, d int) {
 	var x, y, k int
-	if l == r || t == b {
-		img.Line(l, t, r, b)
+	if smlX == bigX || smlY == bigY {
+		img.Line(smlX, smlY, bigX, bigY)
 		return
 	}
-	if l > r {
-		l, r = r, l
+	if smlX > bigX {
+		smlX, bigX = bigX, smlX
 	}
-	if t > b {
-		t, b = b, t
+	if smlY > bigY {
+		smlY, bigY = bigY, smlY
 	}
-	for x = l; x <= r; x++ {
-		img.Pset(x, t)
-		img.Pset(x, b)
+	for x = smlX; x <= bigX; x++ {
+		img.Pset(x, smlY)
+		img.Pset(x, bigY)
 	}
-	for y = t; y <= b; y++ {
-		img.Pset(l, y)
-		img.Pset(r, y)
+	for y = smlY; y <= bigY; y++ {
+		img.Pset(smlX, y)
+		img.Pset(bigX, y)
 	}
 	if f&Level != 0 {
-		for y = t + d; y < b; y += d {
-			img.Line(l, y, r, y)
+		for y = smlY + d; y < bigY; y += d {
+			img.Line(smlX, y, bigX, y)
 		}
 	}
 	if f&Plumb != 0 {
-		for x = l + d; x < r; x += d {
-			img.Line(x, t, x, b)
+		for x = smlX + d; x < bigX; x += d {
+			img.Line(x, smlY, x, bigY)
 		}
 	}
 	if f&Slant != 0 {
-		for y = t; y < b; y += d {
-			k = r - l
-			if b-y < k {
-				k = b - y
+		for y = smlY; y < bigY; y += d {
+			k = bigX - smlX
+			if bigY-y < k {
+				k = bigY - y
 			}
-			img.Line(l, y, l+k, y+k)
+			img.Line(smlX, y, smlX+k, y+k)
 		}
-		for x = l + d; x < r; x += d {
-			k = b - t
-			if r-x < k {
-				k = r - x
+		for x = smlX + d; x < bigX; x += d {
+			k = bigY - smlY
+			if bigX-x < k {
+				k = bigX - x
 			}
-			img.Line(x, t, x+k, t+k)
+			img.Line(x, smlY, x+k, smlY+k)
 		}
 	}
 	if f&Twill != 0 {
-		for y = b; y > t; y -= d {
-			k = r - l
-			if y-t < k {
-				k = y - t
+		for y = bigY; y > smlY; y -= d {
+			k = bigX - smlX
+			if y-smlY < k {
+				k = y - smlY
 			}
-			img.Line(l, y, l+k, y-k)
+			img.Line(smlX, y, smlX+k, y-k)
 		}
-		for x = l + d; x < r; x += d {
-			k = b - t
-			if r-x < k {
-				k = r - x
+		for x = smlX + d; x < bigX; x += d {
+			k = bigY - smlY
+			if bigX-x < k {
+				k = bigX - x
 			}
-			img.Line(x, b, x+k, b-k)
+			img.Line(x, bigY, x+k, bigY-k)
 		}
 	}
 }
