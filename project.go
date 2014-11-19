@@ -2,7 +2,7 @@ package paint
 
 import (
 	"errors"
-	"github.com/hydra13142/geom"
+	"github.com/hydra13142/math/geomtry/plain"
 	"image"
 	"image/color"
 	"image/draw"
@@ -38,7 +38,7 @@ func Project(dst draw.Image, src image.Image, prj func(x, y float64) (x1, y1 flo
 			x1, y1 := prj(sx, sy+1)
 			x2, y2 := prj(sx+1, sy+1)
 			x3, y3 := prj(sx+1, sy)
-			cv := geom.UnsafeConvex([]geom.Point{{x0, y0}, {x1, y1}, {x2, y2}, {x3, y3}})
+			cv := plain.Convex{{x0, y0}, {x1, y1}, {x2, y2}, {x3, y3}}
 			lx, rx := math.Floor(min(x0, x1, x2, x3)), math.Ceil(max(x0, x1, x2, x3))
 			by, ty := math.Floor(min(y0, y1, y2, y3)), math.Ceil(max(y0, y1, y2, y3))
 			if lx >= float64(dw) || rx < 0 {
@@ -61,7 +61,7 @@ func Project(dst draw.Image, src image.Image, prj func(x, y float64) (x1, y1 flo
 			}
 			for x := lx; x < rx; x += 1 {
 				for y := by; y < ty; y += 1 {
-					vc := geom.UnsafeConvex([]geom.Point{{x, y}, {x, y + 1}, {x + 1, y + 1}, {x + 1, y}})
+					vc := plain.Convex{{x, y}, {x, y + 1}, {x + 1, y + 1}, {x + 1, y}}
 					k := cv.And(vc).Area()
 					if k != 0 {
 						p := &c[int(x)][int(y)]
