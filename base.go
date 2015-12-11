@@ -14,7 +14,7 @@ var (
 	Blue   = color.RGBA{0, 0, 255, 255}
 	Yellow = color.RGBA{255, 255, 0, 255}
 	Purple = color.RGBA{255, 0, 255, 255}
-	Ching  = color.RGBA{0, 255, 255, 255}
+	Indigo  = color.RGBA{0, 255, 255, 255}
 	White  = color.RGBA{255, 255, 255, 255}
 )
 
